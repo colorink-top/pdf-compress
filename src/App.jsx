@@ -168,7 +168,7 @@ function App() {
       const messageMap = {};
 
       const params = getAllUrlParams(document.location.href)
-      const uniqueId = params.uniqueId;
+      const uniqueId = params.uniqueid + '';
 
       const sendMessageAsyncFn = async (event, data, num,next)=> {
         return new Promise(function(resolve){
@@ -191,7 +191,7 @@ function App() {
         const msg = event.data || {};
         switch (msg.type) {
           case 'init': {
-            if (msg.uniqueId !== uniqueId) {return}
+            if (msg.uniqueId + '' !== uniqueId) {return}
             if (status === 'init') {return}
             status = `init`;
             setTimeout(()=>{
