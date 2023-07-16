@@ -167,6 +167,9 @@ function App() {
       let status = ''
       const messageMap = {};
 
+      const params = getAllUrlParams(document.location.href)
+      const uniqueId = params.uniqueId;
+
       const sendMessageAsyncFn = async (event, data, num,next)=> {
         return new Promise(function(resolve){
           event.source.postMessage({
@@ -188,6 +191,7 @@ function App() {
         const msg = event.data || {};
         switch (msg.type) {
           case 'init': {
+            if (msg.uniqueId !== uniqueId) {return}
             if (status === 'init') {return}
             status = `init`;
             setTimeout(()=>{
