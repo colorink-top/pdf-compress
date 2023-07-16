@@ -248,24 +248,7 @@ function App() {
     let minFileName = file && file.filename && file.filename.replace('.pdf', '-min.pdf');
     return (
         <>
-            <h1>Free Browser side PDF-Compressor</h1>
-            <p>
-                The best tool I know to compress PDF is <a target={"_blank"}
-                                                           href={"https://ghostscript.com/"}>Ghostscript</a> but this
-                was
-                not running in the browser. Until <a target={"_blank"}
-                                                     href={"https://github.com/ochachacha/ps-wasm"}>Ochachacha</a> ported
-                the lib in <a target={"_blank"}
-                              href={"https://webassembly.org/"}>Webassembly</a>.</p>
-            <p>
-                Based on his amazing work, I built this <a
-                href={"https://github.com/laurentmmeyer/ghostscript-pdf-compress.wasm"} target={"_blank"}>demo</a>.
-                It's running on Vite and React. It imports the WASM on the fly when you want compress a PDF.
-            </p>
-            <p>
-                Be aware that the Webassembly binary is weighting <b>18MB</b>.
-            </p>
-            <p><i>Secure and private by design: the data never leaves your computer.</i></p>
+            <h1>PDF-Compressor</h1>
             {state !== "loading" && state !== "toBeDownloaded" &&
                 <form onSubmit={onSubmit}>
                     <input type="file" accept={"application/pdf"} name="file"
@@ -277,7 +260,7 @@ function App() {
                     {state === 'selected' &&
                         <div className={"success-button padded-button padding-top"}>
                             <input className={"button"} type="submit"
-                                   value={"🚀 Compress this PDF in the browser! 🚀"}/>
+                                   value={"🚀 Compress this PDF! 🚀"}/>
                         </div>
                     }
 
@@ -297,11 +280,6 @@ function App() {
                     </div>
                 </>
             }
-            <br/>
-            <p><i>This website uses no tracking, no cookies, no adtech.</i></p>
-            <p>
-                <a target={"_blank"} href={"https://meyer-laurent.com"}>About me</a>
-            </p>
         </>
     )
 }
