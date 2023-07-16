@@ -1,6 +1,98 @@
-import {useState} from 'react'
+import {useState, useEffect} from 'react'
 import './App.css'
 import {_GSPS2PDF} from "./lib/background.js";
+
+
+function getAllUrlParams(url) {
+
+  // get query string from url (optional) or window
+  var queryString = url ? url.split('?')[1] : window.location.search.slice(1);
+
+  // we'll store the parameters here
+  var obj = {};
+
+  // if query string exists
+  if (queryString) {
+
+    // stuff after # is not part of query string, so get rid of it
+    queryString = queryString.split('#')[0];
+
+    // split our query string into its component parts
+    var arr = queryString.split('&');
+
+    for (var i = 0; i < arr.length; i++) {
+      // separate the keys and the values
+      var a = arr[i].split('=');
+
+      // set parameter name and value (use 'true' if empty)
+      var paramName = a[0];
+      var paramValue = typeof (a[1]) === 'undefined' ? true : a[1];
+
+      // (optional) keep case consistent
+      paramName = paramName.toLowerCase();
+      if (typeof paramValue === 'string') paramValue = paramValue.toLowerCase();
+
+      // if the paramName ends with square brackets, e.g. colors[] or colors[2]
+      if (paramName.match(/\[(\d+)?\]$/)) {
+
+        // create key if it doesn't exist
+        var key = paramName.replace(/\[(\d+)?\]/, '');
+        if (!obj[key]) obj[key] = [];
+
+        // if it's an indexed array e.g. colors[2]
+        if (paramName.match(/\[\d+\]$/)) {
+          // get the index value and add the entry at the appropriate position
+          var index = /\[(\d+)\]/.exec(paramName)[1];
+          obj[key][index] = paramValue;
+        } else {
+          // otherwise add the value to the end of the array
+          obj[key].push(paramValue);
+        }
+      } else {
+        // we're dealing with a string
+        if (!obj[paramName]) {
+          // if it doesn't exist, create property
+          obj[paramName] = paramValue;
+        } else if (obj[paramName] && typeof obj[paramName] === 'string'){
+          // if property does exist and it's a string, convert it to an array
+          obj[paramName] = [obj[paramName]];
+          obj[paramName].push(paramValue);
+        } else {
+          // otherwise add the property
+          obj[paramName].push(paramValue);
+        }
+      }
+    }
+  }
+
+  return obj;
+}
+
+
+const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
+  const b64Datas = b64Data.split(',')
+  if (b64Datas.length > 1) {
+    b64Data = b64Datas[1];
+    contentType = b64Datas[0].split(':')[1].split(';')[0]
+  }
+  const byteCharacters = atob(b64Data);
+  const byteArrays = [];
+
+  for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+    const slice = byteCharacters.slice(offset, offset + sliceSize);
+
+    const byteNumbers = new Array(slice.length);
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    byteArrays.push(byteArray);
+  }
+
+  const blob = new Blob(byteArrays, {type: contentType});
+  return blob;
+}
 
 
 function loadPDFData(response, filename) {
@@ -12,12 +104,26 @@ function loadPDFData(response, filename) {
             window.URL.revokeObjectURL(response.pdfDataURL);
             const blob = new Blob([xhr.response], {type: "application/pdf"});
             const pdfURL = window.URL.createObjectURL(blob);
-            resolve({pdfURL})
+            resolve({pdfURL, blob})
         };
         xhr.send();
     })
 
 }
+
+function blobToDataURL (data) {
+  return new Promise((resolve, reject)=>{
+    const fileReader = new FileReader();
+    fileReader.onerror = function(e) {
+      reject(e)
+    };
+    fileReader.onload = function() {
+      resolve(fileReader.result)
+    };
+    fileReader.readAsDataURL(data);
+  });
+};
+
 
 
 function App() {
@@ -25,13 +131,16 @@ function App() {
     const [file, setFile] = useState(undefined)
     const [downloadLink, setDownloadLink] = useState(undefined)
 
-    function compressPDF(pdf, filename) {
+    function compressPDF(pdf, filename, callback) {
         const dataObject = {psDataURL: pdf}
         _GSPS2PDF(dataObject,
             (element) => {
                 console.log(element);
                 setState("toBeDownloaded")
-                loadPDFData(element, filename).then(({pdfURL}) => {
+                loadPDFData(element, filename).then(({pdfURL, blob}) => {
+                    if (callback) {
+                      callback(pdfURL, blob)
+                    }
                     setDownloadLink(pdfURL)
                 });
             },
@@ -53,6 +162,88 @@ function App() {
         setState("loading")
         return false;
     }
+
+    useEffect(()=>{
+      let status = ''
+      const messageMap = {};
+
+      const sendMessageAsyncFn = async (event, data, num,next)=> {
+        return new Promise(function(resolve){
+          event.source.postMessage({
+            type: 'receiveData',
+            data,
+            num,
+            next
+          }, event.origin)
+          messageMap[num] = ()=>{
+            resolve()
+          }
+        });
+      }
+
+      const messageFn = (event)=>{
+        if (event.source === window) {
+          return
+        }
+        const msg = event.data || {};
+        switch (msg.type) {
+          case 'init': {
+            if (status === 'init') {return}
+            status = `init`;
+            setTimeout(()=>{
+              status = 'inited'
+              event.source.postMessage({type: 'inited'}, event.origin);
+            }, 1000)
+            break
+          }
+          case 'receiveResult': {
+            const num = msg.num;
+            const callbackFn = messageMap[num];
+            if (callbackFn) {
+              delete messageMap[num];
+              callbackFn();
+            }
+            break;
+          }
+          case 'sendData': {
+            if (msg.next) {
+              messageMap[msg.num] = msg.data
+            } else {
+              const dataURL = []
+              const keys = Object.keys(messageMap).sort()
+              keys.forEach((key, _i)=>{
+                dataURL.push(messageMap[_i+1])
+                delete messageMap[_i+1]
+              })
+              const blob = b64toBlob(dataURL.join(''))
+              const blobURL = window.URL.createObjectURL(blob)
+              compressPDF(blobURL, 'temp.pdf', async (pdfURL, blob)=>{
+                const newDataURL = await blobToDataURL(blob)
+
+                let subText = newDataURL;
+                const maxLength = 200000;
+                let num = 1;
+                do {
+                  const postText = subText.substring(0, maxLength);
+                  subText = subText.substring(maxLength);
+                  await sendMessageAsyncFn(event, postText, num++, true)
+                } while (subText.length > 0)
+                sendMessageAsyncFn(event, '', num, false)
+              })
+            }
+            event.source.postMessage({
+              type: 'sendResult',
+              num: msg.num
+            }, event.origin)
+            break;
+          }
+        }
+      }
+      window.addEventListener('message', messageFn)
+      return ()=> {
+        window.removeEventListener('message', messageFn)
+      }
+    }, [])
 
     let minFileName = file && file.filename && file.filename.replace('.pdf', '-min.pdf');
     return (
@@ -106,10 +297,6 @@ function App() {
                     </div>
                 </>
             }
-            <p>
-                Everything is open-source and you can contribute <a
-                href={"https://github.com/laurentmmeyer/ghostscript-pdf-compress.wasm"} target={"_blank"}>here</a>.
-            </p>
             <br/>
             <p><i>This website uses no tracking, no cookies, no adtech.</i></p>
             <p>
