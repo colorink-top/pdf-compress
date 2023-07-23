@@ -1,7 +1,8 @@
-# Ghostscript-pdf-compress.wasm
+# pdf-compress
+
+It takes any PDF and compress it via ghostscript.
 
 ## Context
-This project is a demo of another usage of the `gs.wasm` that [@ochachacha](https://github.com/ochachacha) compiled. It takes any PDF and compress it via ghostscript.
 
 The applied command is:
 
@@ -14,12 +15,12 @@ gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQ
 To run the project, simply do the following steps
 
 ```bash
-git clone git@github.com:laurentmmeyer/ghostscript-pdf-compress.wasm.git
-cd ghostscript-pdf-compress.wasm
+git clone https://github.com/colorink-top/pdf-compress
+cd pdf-compress
 yarn
 yarn dev
 ```
 
 ## Demo
 
-[https://laurentmmeyer.github.io/ghostscript-pdf-compress.wasm/](https://laurentmmeyer.github.io/ghostscript-pdf-compress.wasm/)
+<https://colorink-top.github.io/pdf-compress/>
