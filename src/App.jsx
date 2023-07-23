@@ -1,4 +1,6 @@
 import {useState, useEffect} from 'react'
+import { PDFDocument } from 'pdf-lib'
+
 import './App.css'
 import {_GSPS2PDF} from "./lib/background.js";
 
@@ -100,9 +102,12 @@ function loadPDFData(response, filename) {
         const xhr = new XMLHttpRequest();
         xhr.open("GET", response.pdfDataURL);
         xhr.responseType = "arraybuffer";
-        xhr.onload = function () {
+        xhr.onload = async function () {
             window.URL.revokeObjectURL(response.pdfDataURL);
-            const blob = new Blob([xhr.response], {type: "application/pdf"});
+            const pdfDoc = await PDFDocument.load(xhr.response)
+            pdfDoc.setProducer('SNW | https://colorink-top.github.io/pdf-compress/')
+            const uint8Array = await pdfDoc.save();
+            const blob = new Blob([uint8Array], {type: "application/pdf"});
             const pdfURL = window.URL.createObjectURL(blob);
             resolve({pdfURL, blob})
         };
