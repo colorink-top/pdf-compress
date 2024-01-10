@@ -217,8 +217,7 @@ function App() {
           case 'sendDataByBlob': {
             const blob = msg.data;
             const blobURL = window.URL.createObjectURL(blob)
-            const operatePDFFn = operatePDFFnMap[msg.operateType] || compressPDF;
-            operatePDFFn(blobURL, 'temp.pdf', async (pdfURL, blob)=>{
+            compressPDF(blobURL, 'temp.pdf', async (pdfURL, blob)=>{
               event.source.postMessage({
                 type: 'receiveDataByBlob',
                 data: blob,
