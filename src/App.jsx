@@ -201,7 +201,7 @@ function App() {
             status = `init`;
             setTimeout(()=>{
               status = 'inited'
-              event.source.postMessage({type: 'inited'}, event.origin);
+              event.source.postMessage({type: 'inited', byBlob: msg.byBlob}, event.origin);
             }, 1000)
             break
           }
@@ -212,6 +212,18 @@ function App() {
               delete messageMap[num];
               callbackFn();
             }
+            break;
+          }
+          case 'sendDataByBlob': {
+            const blob = msg.data;
+            const blobURL = window.URL.createObjectURL(blob)
+            const operatePDFFn = operatePDFFnMap[msg.operateType] || compressPDF;
+            operatePDFFn(blobURL, 'temp.pdf', async (pdfURL, blob)=>{
+              event.source.postMessage({
+                type: 'receiveDataByBlob',
+                data: blob,
+              }, event.origin)
+            })
             break;
           }
           case 'sendData': {
