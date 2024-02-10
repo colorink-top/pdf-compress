@@ -62,6 +62,7 @@ let Module;
 
 export function _GSPS2PDF(dataStruct, responseCallback, progressCallback, statusUpdateCallback) {
     // first download the ps data
+  // ghostscript -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -DNOPAUSE -dQUIET -dBATCH -sOutputFile=output.pdf input.pdf
     var xhr = new XMLHttpRequest();
     xhr.open("GET", dataStruct.psDataURL);
     xhr.responseType = "arraybuffer";
