@@ -1,8 +1,8 @@
 import {useState, useEffect} from 'react'
 import { PDFDocument } from 'pdf-lib'
 
-import './App.css'
-import {_GSPS2PDF} from "./lib/background.js";
+import '../App.css'
+import {_GSPS2PDF} from "../lib/background.js";
 
 
 function getAllUrlParams(url) {
