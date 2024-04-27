@@ -172,7 +172,7 @@ function App() {
       const hash = !!document.location.hash ? document.location.hash.substring(1): ''
       const params =  new URLSearchParams(hash);
       const uniqueId = params.get('uniqueid') + "";
-      window.parent.postMessage({type: 'init', uniqueId}, '*')
+      window.parent.postMessage({type: uniqueId + '.init', uniqueId}, '*')
       const messageFn = (event)=>{
         if (event.source === window) {
           return
@@ -185,7 +185,8 @@ function App() {
             const blobURL = window.URL.createObjectURL(pdfInfo.data)
             compressPDF(blobURL, 'temp.pdf', async (pdfURL, blob)=>{
               event.source.postMessage({
-                type: 'close',
+                type: uniqueId + '.close',
+                uniqueId,
                 data: blob,
               }, event.origin)
             })
