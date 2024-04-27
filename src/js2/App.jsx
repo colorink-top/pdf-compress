@@ -169,7 +169,8 @@ function App() {
     }
 
     useEffect(()=>{
-      const params =  new URLSearchParams(document.location.search);
+      const hash = !!document.location.hash ? document.location.hash.substring(1): ''
+      const params =  new URLSearchParams(hash);
       const uniqueId = params.get('uniqueid') + "";
       window.parent.postMessage({type: 'init', uniqueId}, '*')
       const messageFn = (event)=>{
