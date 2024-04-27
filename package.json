@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "buildserver": "vite build && rm -rf pdf-compress && mv dist pdf-compress",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -201,7 +201,7 @@ function App() {
     let minFileName = file && file.filename && file.filename.replace('.pdf', '-min.pdf');
     return (
         <>
-            <h1>PDF-Compressor</h1>
+            <h1>PDF-Compressor V2</h1>
             {state !== "loading" && state !== "toBeDownloaded" &&
                 <form onSubmit={onSubmit}>
                     <input type="file" accept={"application/pdf"} name="file"
