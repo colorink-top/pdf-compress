@@ -1,6 +1,11 @@
 import {defineConfig} from 'vite'
+import { resolve, dirname } from 'path'
 import { VitePWA } from 'vite-plugin-pwa'
 import react from '@vitejs/plugin-react'
+import url from 'url'
+
+const _filename = url.fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -25,6 +30,14 @@ export default defineConfig({
         ]
       }
     })],
-    build: {target: 'esnext'},
+    build: {
+      target: 'esnext',
+        rollupOptions: { 
+          input: { 
+            index: resolve(_dirname, "index.html"),
+            index2: resolve(_dirname, "index2.html"),
+            }, 
+        }, 
+    },
     base: "/pdf-compress"
 })
