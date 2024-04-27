@@ -11,6 +11,7 @@ const _dirname = dirname(_filename);
 export default defineConfig({
     plugins: [react(), VitePWA({
       registerType: 'autoUpdate',
+      devOptions: { enabled: false},
       workbox: {
         runtimeCaching: [
           {
